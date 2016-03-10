@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+    <service
+        android:name="org.zywx.wbpalmstar.plugin.uexbackground.EUExBgService"
+        android:exported="false"
+        android:enabled="true"/>
+</manifest>
