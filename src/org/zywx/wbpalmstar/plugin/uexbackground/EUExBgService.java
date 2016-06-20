@@ -36,7 +36,6 @@ import org.zywx.wbpalmstar.engine.universalex.EUExBase;
 import org.zywx.wbpalmstar.plugin.uexbackground.vo.AddTimerVO;
 import org.zywx.wbpalmstar.plugin.uexbackground.vo.StartVO;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -80,13 +79,7 @@ public class EUExBgService extends Service {
     private void loadJsContentByPath(String path) {
         String content=null;
         if (path.startsWith("/")){
-            try {
-                content=FileHelper.readFile(path);
-            } catch (IOException e) {
-                if (BDebug.DEBUG){
-                    e.printStackTrace();
-                }
-            }
+            content=FileHelper.readFile(path);
         }else{
             content=FileHelper.loadAssetTextAsString(this
                     , getRealPath(path));
@@ -137,7 +130,7 @@ public class EUExBgService extends Service {
         }else{
             mBackgroundView = new EBrowserView(this, 0, null){
                 @Override
-                protected void onPageFinished(EBrowserView view, String url) {
+                public void onPageFinished(EBrowserView view, String url) {
                     loadJs();
                 }
             };
