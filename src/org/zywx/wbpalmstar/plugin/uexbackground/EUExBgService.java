@@ -234,12 +234,21 @@ public class EUExBgService extends Service {
                     this.cancel();
                 }
             }
-            EUExBase.callBackJsObject(mBackgroundView, "uexBackground."+mAddTimerVO.getCallbackName(), count);
+            callBackJsObjectService(mBackgroundView, "uexBackground."+mAddTimerVO.getCallbackName(), count);
             count++;
         }
 
     }
 
+    public static void callBackJsObjectService(EBrowserView eBrowserView, String methodName, Object value){
+        if (eBrowserView == null) {
+            BDebug.e("mBrwView is null...");
+            return;
+        }
+        String js = "javascript:" + "if(" + methodName + "){"
+                + methodName + "(" + value + ");}else{console.log('function "+methodName +" not found.')}";
+        eBrowserView.addUriTask(js);
+    }
 
     @Override
     public void onDestroy() {
