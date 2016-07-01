@@ -7,6 +7,7 @@ import android.os.Message;
 
 import com.google.gson.reflect.TypeToken;
 
+import org.zywx.wbpalmstar.base.BDebug;
 import org.zywx.wbpalmstar.base.BUtility;
 import org.zywx.wbpalmstar.engine.DataHelper;
 import org.zywx.wbpalmstar.engine.EBrowserView;
@@ -64,6 +65,7 @@ public class EUExBackground extends EUExBase {
         intent.setFlags(EUExBgService.FLAG_START);
         intent.putExtra(EUExBgService.KEY_START_DATA, startVO);
         mContext.startService(intent);
+        BDebug.i(DataHelper.gson.toJson(startVO));
     }
 
     public boolean addTimer(String[] params) {

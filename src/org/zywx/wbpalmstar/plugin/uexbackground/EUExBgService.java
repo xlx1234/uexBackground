@@ -89,7 +89,9 @@ public class EUExBgService extends Service {
             content=FileHelper.loadAssetTextAsString(this
                     , getRealPath(path));
         }
-        mBackgroundView.loadUrl("javascript:" +content);
+        Message message=mHandler.obtainMessage();
+        message.obj="javascript:" +content;
+        message.sendToTarget();
     }
 
     /**
@@ -171,8 +173,10 @@ public class EUExBgService extends Service {
         public void handleMessage(Message msg) {
             if (msg.obj!=null&&mBackgroundView!=null){
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    BDebug.i(String.valueOf(msg.obj));
                     mBackgroundView.evaluateJavascript( String.valueOf(msg.obj),null);
                 }else{
+                    String.valueOf(msg.obj);
                     mBackgroundView.loadUrl( String.valueOf(msg.obj));
                 }
             }
