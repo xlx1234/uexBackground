@@ -22,7 +22,11 @@ package org.zywx.wbpalmstar.plugin.uexbackground;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -32,7 +36,6 @@ import org.zywx.wbpalmstar.base.BDebug;
 import org.zywx.wbpalmstar.base.BUtility;
 import org.zywx.wbpalmstar.base.FileHelper;
 import org.zywx.wbpalmstar.engine.EBrowserView;
-import org.zywx.wbpalmstar.engine.universalex.EUExBase;
 import org.zywx.wbpalmstar.plugin.uexbackground.vo.AddTimerVO;
 import org.zywx.wbpalmstar.plugin.uexbackground.vo.StartVO;
 
@@ -61,6 +64,8 @@ public class EUExBgService extends Service {
     private StartVO mStartVO;
 
     private List<CallbackJsTimerTask> mJsTimerTasks = new ArrayList<CallbackJsTimerTask>();
+
+    private WebViewHandler mHandler;
 
     @Override
     public void onCreate() {
@@ -125,12 +130,14 @@ public class EUExBgService extends Service {
      * webView不存在时，load js需要等onPageFinish之后
      */
     private void createViewAndLoadJs(){
+        BDebug.i("createViewAndLoadJs");
         if (mBackgroundView!=null){
-           loadJs();
+            loadJs();
         }else{
             mBackgroundView = new EBrowserView(this, 0, null){
                 @Override
                 public void onPageFinished(EBrowserView view, String url) {
+                    BDebug.i("onPageFinished");
                     loadJs();
                 }
             };
@@ -149,9 +156,30 @@ public class EUExBgService extends Service {
             view.addView(mBackgroundView);
             windowManager.addView(view, params);
             mBackgroundView.loadUrl(BUtility.F_ASSET_PATH + "error/error.html");
+            mHandler=new WebViewHandler(Looper.getMainLooper());
         }
 
     }
+
+    class WebViewHandler extends Handler{
+
+        public WebViewHandler(Looper mainLooper) {
+            super(mainLooper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj!=null&&mBackgroundView!=null){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    mBackgroundView.evaluateJavascript( String.valueOf(msg.obj),null);
+                }else{
+                    mBackgroundView.loadUrl( String.valueOf(msg.obj));
+                }
+            }
+            super.handleMessage(msg);
+        }
+    }
+
 
     private void handleIntent(Intent intent, int flags) {
         switch (intent.getFlags()) {
@@ -177,7 +205,7 @@ public class EUExBgService extends Service {
                 }
                 break;
             case FLAG_REMOVE_ALL_TIMER:
-               cancelAllTimer();
+                cancelAllTimer();
                 break;
             case FLAG_STOP:
                 break;
@@ -240,14 +268,17 @@ public class EUExBgService extends Service {
 
     }
 
-    public static void callBackJsObjectService(EBrowserView eBrowserView, String methodName, Object value){
+    public void callBackJsObjectService(EBrowserView eBrowserView, String methodName, Object value){
         if (eBrowserView == null) {
             BDebug.e("mBrwView is null...");
             return;
         }
         String js = "javascript:" + "if(" + methodName + "){"
                 + methodName + "(" + value + ");}else{console.log('function "+methodName +" not found.')}";
-        eBrowserView.loadUrl(js);
+
+        Message message=mHandler.obtainMessage();
+        message.obj=js;
+        message.sendToTarget();
     }
 
     @Override
