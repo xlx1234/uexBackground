@@ -117,7 +117,7 @@ public class EUExBgService extends Service {
                 }
             }
             loadJsContentByPath(mStartVO.getJsPath());
-            EUExBase.callBackJs(mBackgroundView, JsConst.ON_LOAD, "");
+            callBackJsObjectService(mBackgroundView, JsConst.ON_LOAD, "");
         }
     }
 
@@ -247,7 +247,7 @@ public class EUExBgService extends Service {
         }
         String js = "javascript:" + "if(" + methodName + "){"
                 + methodName + "(" + value + ");}else{console.log('function "+methodName +" not found.')}";
-        eBrowserView.addUriTask(js);
+        eBrowserView.loadUrl(js);
     }
 
     @Override
