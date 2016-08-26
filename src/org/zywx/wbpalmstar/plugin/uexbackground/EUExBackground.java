@@ -46,10 +46,10 @@ public class EUExBackground extends EUExBase {
         }
     }
 
-    public void start(String[] params) {
+    public boolean start(String[] params) {
         if (params == null || params.length < 1) {
             errorCallback(0, 0, "error params!");
-            return;
+            return false;
         }
         String json = params[0];
         StartVO startVO = DataHelper.gson.fromJson(json, StartVO.class);
@@ -66,6 +66,7 @@ public class EUExBackground extends EUExBase {
         intent.putExtra(EUExBgService.KEY_START_DATA, startVO);
         mContext.startService(intent);
         BDebug.i(DataHelper.gson.toJson(startVO));
+        return true;
     }
 
     public boolean addTimer(String[] params) {
