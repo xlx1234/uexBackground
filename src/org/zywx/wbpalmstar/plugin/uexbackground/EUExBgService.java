@@ -22,7 +22,11 @@ package org.zywx.wbpalmstar.plugin.uexbackground;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
@@ -32,11 +36,9 @@ import org.zywx.wbpalmstar.base.BDebug;
 import org.zywx.wbpalmstar.base.BUtility;
 import org.zywx.wbpalmstar.base.FileHelper;
 import org.zywx.wbpalmstar.engine.EBrowserView;
-import org.zywx.wbpalmstar.engine.universalex.EUExBase;
 import org.zywx.wbpalmstar.plugin.uexbackground.vo.AddTimerVO;
 import org.zywx.wbpalmstar.plugin.uexbackground.vo.StartVO;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -63,6 +65,8 @@ public class EUExBgService extends Service {
 
     private List<CallbackJsTimerTask> mJsTimerTasks = new ArrayList<CallbackJsTimerTask>();
 
+    private WebViewHandler mHandler;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -80,18 +84,14 @@ public class EUExBgService extends Service {
     private void loadJsContentByPath(String path) {
         String content=null;
         if (path.startsWith("/")){
-            try {
-                content=FileHelper.readFile(path);
-            } catch (IOException e) {
-                if (BDebug.DEBUG){
-                    e.printStackTrace();
-                }
-            }
+            content=FileHelper.readFile(path);
         }else{
             content=FileHelper.loadAssetTextAsString(this
                     , getRealPath(path));
         }
-        mBackgroundView.loadUrl("javascript:" +content);
+        Message message=mHandler.obtainMessage();
+        message.obj="javascript:" +content;
+        message.sendToTarget();
     }
 
     /**
@@ -124,7 +124,7 @@ public class EUExBgService extends Service {
                 }
             }
             loadJsContentByPath(mStartVO.getJsPath());
-            EUExBase.callBackJs(mBackgroundView, JsConst.ON_LOAD, "");
+            callBackJsObjectService(mBackgroundView, JsConst.ON_LOAD, "");
         }
     }
 
@@ -132,12 +132,14 @@ public class EUExBgService extends Service {
      * webView不存在时，load js需要等onPageFinish之后
      */
     private void createViewAndLoadJs(){
+        BDebug.i("createViewAndLoadJs");
         if (mBackgroundView!=null){
-           loadJs();
+            loadJs();
         }else{
             mBackgroundView = new EBrowserView(this, 0, null){
                 @Override
-                protected void onPageFinished(EBrowserView view, String url) {
+                public void onPageFinished(EBrowserView view, String url) {
+                    BDebug.i("onPageFinished");
                     loadJs();
                 }
             };
@@ -156,9 +158,32 @@ public class EUExBgService extends Service {
             view.addView(mBackgroundView);
             windowManager.addView(view, params);
             mBackgroundView.loadUrl(BUtility.F_ASSET_PATH + "error/error.html");
+            mHandler=new WebViewHandler(Looper.getMainLooper());
         }
 
     }
+
+    class WebViewHandler extends Handler{
+
+        public WebViewHandler(Looper mainLooper) {
+            super(mainLooper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj!=null&&mBackgroundView!=null){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    BDebug.i(String.valueOf(msg.obj));
+                    mBackgroundView.evaluateJavascript( String.valueOf(msg.obj),null);
+                }else{
+                    String.valueOf(msg.obj);
+                    mBackgroundView.loadUrl( String.valueOf(msg.obj));
+                }
+            }
+            super.handleMessage(msg);
+        }
+    }
+
 
     private void handleIntent(Intent intent, int flags) {
         switch (intent.getFlags()) {
@@ -184,7 +209,7 @@ public class EUExBgService extends Service {
                 }
                 break;
             case FLAG_REMOVE_ALL_TIMER:
-               cancelAllTimer();
+                cancelAllTimer();
                 break;
             case FLAG_STOP:
                 break;
@@ -241,12 +266,24 @@ public class EUExBgService extends Service {
                     this.cancel();
                 }
             }
-            EUExBase.callBackJsObject(mBackgroundView, "uexBackground."+mAddTimerVO.getCallbackName(), count);
+            callBackJsObjectService(mBackgroundView, "uexBackground."+mAddTimerVO.getCallbackName(), count);
             count++;
         }
 
     }
 
+    public void callBackJsObjectService(EBrowserView eBrowserView, String methodName, Object value){
+        if (eBrowserView == null) {
+            BDebug.e("mBrwView is null...");
+            return;
+        }
+        String js = "javascript:" + "if(" + methodName + "){"
+                + methodName + "(" + value + ");}else{console.log('function "+methodName +" not found.')}";
+
+        Message message=mHandler.obtainMessage();
+        message.obj=js;
+        message.sendToTarget();
+    }
 
     @Override
     public void onDestroy() {
