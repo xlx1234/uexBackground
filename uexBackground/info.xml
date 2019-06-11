@@ -1,8 +1,8 @@
-﻿﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <uexplugins>
     <plugin
-        uexName="uexBackground" version="4.0.0" build="1">
-        <info>1:4.0</info>
+        uexName="uexBackground" version="4.0.1" build="2019022201">
+        <info>1:4.0;修改在手机8.0和9.0上闪退问题</info>
         <build>0:后台运行插件</build>
     </plugin>
 </uexplugins>

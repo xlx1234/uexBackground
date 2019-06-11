@@ -70,6 +70,7 @@ public class EUExBgService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
     }
 
     @Override
@@ -145,7 +146,10 @@ public class EUExBgService extends Service {
             };
             mBackgroundView.init();
             WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-            WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, PixelFormat.TRANSLUCENT);
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, PixelFormat.TRANSLUCENT);//TYPE_APPLICATION_OVERLAY
             params.gravity = Gravity.TOP | Gravity.LEFT;
             params.x = 0;
             params.y = 0;

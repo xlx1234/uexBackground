@@ -13,7 +13,6 @@ if (UNIT_TEST) {
             UNIT_TEST.assertTrue(result);
         }
     };
-
     UNIT_TEST.addCase("uexBackground", uexBackgroundCase);
 }
 

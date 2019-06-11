@@ -24,6 +24,8 @@ public class EUExBackground extends EUExBase {
 
 
     public EUExBackground(Context context, EBrowserView eBrowserView) {
+
+
         super(context, eBrowserView);
     }
 
